@@ -2,8 +2,9 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>CASINO GAME HUB</title>
+<title>CASINO CENTER</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTCA23RIU4_5OfYqO_59n00Rcys8uYsdrYT2DtFjuLVTPBYc4-R2l2KnIYJ&s=10" sizes="16×16" type="image/png" />  
 <style>
 body{
   margin:0;background:#020617;color:#fff;
@@ -51,17 +52,17 @@ button,input{
 </head>
 <body>
 
-<header>🎰 CASINO GAME HUB</header>
+<header>CASINO</header>
 
 <div>所持ポイント：<b><span id="pt"></span> Pt</b></div>
 <div class="notice">※ 架空ポイント制・実際のお金は使用しません</div>
 
 <nav>
-  <button onclick="show('home')">🏠</button>
-  <button onclick="show('roulette')">🎡</button>
-  <button onclick="show('slot')">🎰</button>
-  <button onclick="show('pachinko')">🎯</button>
-  <button onclick="show('admin')">🔐</button>
+  <button onclick="show('home')">🏠ホーム</button>
+  <button onclick="show('roulette')">🎡ルーレット</button>
+  <button onclick="show('slot')">🎰スロット</button>
+  <button onclick="show('pachinko')">🎯パチンコ</button>
+  <button onclick="show('admin')">🔐管理者モード</button>
 </nav>
 
 <section id="home" class="active">
@@ -114,7 +115,7 @@ button,input{
     <button onclick="addPoint(-Number(aval.value))">－</button>
     <button onclick="setPoint(999999)">💎 MAX</button>
     <button class="danger" onclick="resetAll()">全削除</button>
-    <button class="danger" onclick="adminLogout()">🔓 管理者モード解除</button>
+    <button class="danger" onclick="adminLogout()">ログアウト</button>
   </div>
 </section>
 
@@ -126,16 +127,18 @@ button,input{
 const KEY="casinoPoint";
 const ADMIN_PASS="appleQer!";
 
-function getPoint(){return Number(localStorage.getItem(KEY) ?? 10000)}
-function setPoint(v){localStorage.setItem(KEY, Math.max(0,v)); update()}
-function addPoint(v){setPoint(getPoint()+v)}
-function update(){pt.textContent=getPoint()}
+/* 共通 */
+function getPoint(){ return Number(localStorage.getItem(KEY) ?? 10000) }
+function setPoint(v){ localStorage.setItem(KEY, Math.max(0,v)); update() }
+function addPoint(v){ setPoint(getPoint()+v) }
+function update(){ pt.textContent=getPoint() }
 
 function show(id){
   document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 }
 
+/* ルーレット */
 function playRoulette(){
   const bet=Number(rbet.value);
   if(!bet || bet<=0 || bet>getPoint()){
@@ -160,6 +163,7 @@ function playRoulette(){
   },1200);
 }
 
+/* スロット */
 function playSlot(){
   if(getPoint()<10) return;
   addPoint(-10);
@@ -185,6 +189,7 @@ function playSlot(){
   },80);
 }
 
+/* パチンコ */
 function playPachi(){
   if(getPoint()<1) return;
   addPoint(-1);
@@ -203,17 +208,18 @@ function playPachi(){
   },800);
 }
 
+/* 管理者 */
 function adminLogin(){
   if(pass.value===ADMIN_PASS){
-    localStorage.setItem("admin","1");
     loginBox.style.display="none";
     adminPanel.style.display="block";
+  }else{
+    alert("パスワードが違います");
   }
 }
 
 function adminLogout(){
   if(confirm("管理者モードを解除しますか？")){
-    localStorage.removeItem("admin");
     adminPanel.style.display="none";
     loginBox.style.display="block";
     pass.value="";
@@ -235,10 +241,6 @@ function resetUser(){
 }
 
 update();
-if(localStorage.getItem("admin")==="1"){
-  loginBox.style.display="none";
-  adminPanel.style.display="block";
-}
 </script>
 
 </body>
