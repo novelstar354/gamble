@@ -68,11 +68,10 @@ button,input{
   <div class="gameBox">
     <h2>ようこそ</h2>
     <p>全ゲーム共通ポイント制</p>
-    <button class="danger" onclick="resetUser()">🔄 リセット</button>
+    <button class="danger" onclick="resetUser()">🔄 ポイントリセット</button>
   </div>
 </section>
 
-<!-- ===== ルーレット ===== -->
 <section id="roulette">
   <div class="gameBox">
     <h2>🎡 ルーレット</h2>
@@ -83,7 +82,6 @@ button,input{
   </div>
 </section>
 
-<!-- ===== スロット ===== -->
 <section id="slot">
   <div class="gameBox">
     <h2>🎰 スロット</h2>
@@ -93,7 +91,6 @@ button,input{
   </div>
 </section>
 
-<!-- ===== パチンコ ===== -->
 <section id="pachinko">
   <div class="gameBox">
     <h2>🎯 パチンコ</h2>
@@ -103,7 +100,6 @@ button,input{
   </div>
 </section>
 
-<!-- ===== ADMIN ===== -->
 <section id="admin">
   <div class="adminPanel" id="loginBox">
     <h3>管理者ログイン</h3>
@@ -112,16 +108,16 @@ button,input{
   </div>
 
   <div class="adminPanel" id="adminPanel" style="display:none">
-    <h3>⚙ 管理者チート</h3>
+    <h3>⚙ 管理者モード</h3>
     <input id="aval" type="number" placeholder="ポイント">
     <button onclick="addPoint(Number(aval.value))">＋</button>
     <button onclick="addPoint(-Number(aval.value))">－</button>
     <button onclick="setPoint(999999)">💎 MAX</button>
     <button class="danger" onclick="resetAll()">全削除</button>
+    <button class="danger" onclick="adminLogout()">🔓 管理者モード解除</button>
   </div>
 </section>
 
-<!-- ===== 効果音 ===== -->
 <audio id="spinSE" src="https://actions.google.com/sounds/v1/foley/wood_hit.ogg"></audio>
 <audio id="winSE" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
 <audio id="loseSE" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
@@ -130,7 +126,6 @@ button,input{
 const KEY="casinoPoint";
 const ADMIN_PASS="appleQer!";
 
-/* ===== 共通 ===== */
 function getPoint(){return Number(localStorage.getItem(KEY) ?? 10000)}
 function setPoint(v){localStorage.setItem(KEY, Math.max(0,v)); update()}
 function addPoint(v){setPoint(getPoint()+v)}
@@ -141,7 +136,6 @@ function show(id){
   document.getElementById(id).classList.add("active");
 }
 
-/* ===== ルーレット ===== */
 function playRoulette(){
   const bet=Number(rbet.value);
   if(!bet || bet<=0 || bet>getPoint()){
@@ -166,7 +160,6 @@ function playRoulette(){
   },1200);
 }
 
-/* ===== スロット ===== */
 function playSlot(){
   if(getPoint()<10) return;
   addPoint(-10);
@@ -192,7 +185,6 @@ function playSlot(){
   },80);
 }
 
-/* ===== パチンコ ===== */
 function playPachi(){
   if(getPoint()<1) return;
   addPoint(-1);
@@ -211,7 +203,6 @@ function playPachi(){
   },800);
 }
 
-/* ===== 管理者 ===== */
 function adminLogin(){
   if(pass.value===ADMIN_PASS){
     localStorage.setItem("admin","1");
@@ -219,12 +210,24 @@ function adminLogin(){
     adminPanel.style.display="block";
   }
 }
+
+function adminLogout(){
+  if(confirm("管理者モードを解除しますか？")){
+    localStorage.removeItem("admin");
+    adminPanel.style.display="none";
+    loginBox.style.display="block";
+    pass.value="";
+    show("home");
+  }
+}
+
 function resetAll(){
   if(confirm("本当に全削除しますか？")){
     localStorage.clear();
     location.reload();
   }
 }
+
 function resetUser(){
   if(confirm("ポイントをリセットしますか？")){
     setPoint(10000);
