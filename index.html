@@ -109,11 +109,11 @@ button,input{
   </div>
 
   <div class="adminPanel" id="adminPanel" style="display:none">
-    <h3>⚙ 管理者モード</h3>
+    <h3>管理者モード</h3>
     <input id="aval" type="number" placeholder="ポイント">
     <button onclick="addPoint(Number(aval.value))">＋</button>
     <button onclick="addPoint(-Number(aval.value))">－</button>
-    <button onclick="setPoint(999999)">💎 MAX</button>
+    <button onclick="setPoint(999999)">MAX</button>
     <button class="danger" onclick="resetAll()">全削除</button>
     <button class="danger" onclick="adminLogout()">ログアウト</button>
   </div>
