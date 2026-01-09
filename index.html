@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>GAMEHUB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{margin:0;background:#020617;color:#fff;font-family:sans-serif;text-align:center}
+header{padding:14px;font-size:22px;font-weight:bold;border-bottom:1px solid #1e293b}
+#wallet{padding:10px}
+#wallet b{color:#38bdf8}
+button{padding:8px 12px;border:none;border-radius:8px;background:#38bdf8;color:#000;font-weight:bold;cursor:pointer}
+button.danger{background:#ef4444;color:#fff}
+#menu{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:10px}
+iframe{width:100%;max-width:460px;height:760px;border:none;border-radius:12px}
+footer{padding:30px;font-size:.85rem;color:rgba(255,255,255,.5)}
+</style>
+</head>
+<body>
+
+<header>🎰 GAMEHUB</header>
+
+<div id="wallet">
+共通所持金: <b><span id="money">0</span> 円</b><br><br>
+<button class="danger" onclick="resetMoney()">🔄 所持金リセット</button>
+</div>
+
+<div id="menu">
+<button onclick="openGame('pachi')">🎯 パチンコ</button>
+<button onclick="openGame('slot')">🎰 スロット</button>
+<button onclick="openGame('roulette')">🎡 ルーレット</button>
+</div>
+
+<iframe id="frame"></iframe>
+
+<footer>© 2025 GAMEHUB</footer>
+
+<script>
+/* ===== 共通所持金 ===== */
+const START = 100000;
+let money = Number(localStorage.getItem("sharedMoney")) || START;
+const moneyEl=document.getElementById("money");
+updateMoney();
+
+function updateMoney(){
+ localStorage.setItem("sharedMoney",money);
+ moneyEl.textContent=money;
+}
+
+function resetMoney(){
+ if(!confirm("共通所持金をリセットしますか？")) return;
+ money=START;
+ updateMoney();
+ sendMoney();
+}
+
+function sendMoney(){
+ frame.contentWindow?.postMessage({type:"money",value:money},"*");
+}
+
+window.addEventListener("message",e=>{
+ if(e.data.type==="addMoney"){
+  money+=e.data.value;
+  updateMoney();
+  sendMoney();
+ }
+});
+
+function openGame(type){
+ frame.srcdoc = games[type];
+ setTimeout(sendMoney,300);
+}
+</script>
+
+<script>
+/* ====== 各ゲームHTML ====== */
+const games = {
+
+/* ================= パチンコ ================= */
+pachi: `
+<!DOCTYPE html><html><body style="margin:0;background:#020617;color:#fff;text-align:center">
+<h3>🎯 パチンコ</h3>
+💴<span id="money">0</span>円 🎱<span id="balls">300</span><br><br>
+<canvas id="c" width="360" height="520"></canvas><br>
+<button onclick="buy()">玉100 ¥10,000</button>
+<button onclick="shoot()">発射</button>
+<script>
+const c=document.getElementById("c"),ctx=c.getContext("2d");
+let money=0,balls=300,last=0;
+let ballsList=[];
+let zone={x:150,y:450,w:60,h:12,vx:3};
+
+onmessage=e=>{ if(e.data.type==="money"){money=e.data.value;moneyEl.textContent=money;} };
+const moneyEl=document.getElementById("money");
+const ballsEl=document.getElementById("balls");
+
+function buy(){
+ if(money<10000) return;
+ parent.postMessage({type:"addMoney",value:-10000},"*");
+ balls+=100; ballsEl.textContent=balls;
+}
+function shoot(){
+ if(balls<=0||Date.now()-last<700) return;
+ last=Date.now(); balls--; ballsEl.textContent=balls;
+ ballsList.push({x:180,y:20,vy:2});
+}
+function loop(){
+ ctx.fillStyle="#020617";ctx.fillRect(0,0,360,520);
+ zone.x+=zone.vx; if(zone.x<0||zone.x+zone.w>360)zone.vx*=-1;
+ ctx.strokeStyle="#facc15";ctx.strokeRect(zone.x,zone.y,zone.w,zone.h);
+ ballsList.forEach(b=>{
+  b.vy+=0.2; b.y+=b.vy;
+  if(b.x>zone.x&&b.x<zone.x+zone.w&&b.y>zone.y&&b.y<zone.y+zone.h){
+   parent.postMessage({type:"addMoney",value:200000},"*"); b.y=600;
+  }
+  ctx.beginPath();ctx.arc(b.x,b.y,4,0,6.28);ctx.fill();
+ });
+ ballsList=ballsList.filter(b=>b.y<540);
+ requestAnimationFrame(loop);
+}
+loop();
+<\/script></body></html>`,
+
+/* ================= スロット ================= */
+slot: `
+<!DOCTYPE html><html><body style="background:#111;color:#fff;text-align:center">
+<h3>🎰 スロット</h3>
+💴<span id="money">0</span>円<br><br>
+<div style="font-size:48px" id="r">❓❓❓</div><br>
+<button onclick="spin()">BET 10,000</button>
+<script>
+let money=0;
+onmessage=e=>{if(e.data.type==="money"){money=e.data.value;moneyEl.textContent=money;}};
+const moneyEl=document.getElementById("money");
+const icons=["🍒","🔔","⭐","7️⃣"];
+function spin(){
+ if(money<10000) return;
+ parent.postMessage({type:"addMoney",value:-10000},"*");
+ const a=icons[Math.random()*4|0];
+ const b=icons[Math.random()*4|0];
+ const c=icons[Math.random()*4|0];
+ r.textContent=a+b+c;
+ if(a===b&&b===c){
+  parent.postMessage({type:"addMoney",value:50000},"*");
+ }
+}
+<\/script></body></html>`,
+
+/* ================= ルーレット ================= */
+roulette: `
+<!DOCTYPE html><html><body style="background:#020617;color:#fff;text-align:center">
+<h3>🎡 ルーレット</h3>
+💴<span id="money">0</span>円<br><br>
+<button onclick="play()">BET 10,000</button>
+<div id="res" style="font-size:32px;margin-top:10px"></div>
+<script>
+let money=0;
+onmessage=e=>{if(e.data.type==="money"){money=e.data.value;moneyEl.textContent=money;}};
+const moneyEl=document.getElementById("money");
+function play(){
+ if(money<10000) return;
+ parent.postMessage({type:"addMoney",value:-10000},"*");
+ const n=Math.floor(Math.random()*36);
+ res.textContent="結果: "+n;
+ if(n===0){
+  parent.postMessage({type:"addMoney",value:360000},"*");
+ }
+}
+<\/script></body></html>`
+};
+</script>
+
+</body>
+</html>
