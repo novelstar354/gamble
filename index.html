@@ -105,10 +105,10 @@ button,input{
 
 <!-- ===== ADMIN ===== -->
 <section id="admin">
-  <div class="adminPanel" id="login">
+  <div class="adminPanel" id="loginBox">
     <h3>管理者ログイン</h3>
     <input id="pass" type="password" placeholder="Password">
-    <button onclick="login()">LOGIN</button>
+    <button onclick="adminLogin()">LOGIN</button>
   </div>
 
   <div class="adminPanel" id="adminPanel" style="display:none">
@@ -130,8 +130,9 @@ button,input{
 const KEY="casinoPoint";
 const ADMIN_PASS="appleQer!";
 
-function getPoint(){return Number(localStorage.getItem(KEY)??10000)}
-function setPoint(v){localStorage.setItem(KEY,Math.max(0,v));update()}
+/* ===== 共通 ===== */
+function getPoint(){return Number(localStorage.getItem(KEY) ?? 10000)}
+function setPoint(v){localStorage.setItem(KEY, Math.max(0,v)); update()}
 function addPoint(v){setPoint(getPoint()+v)}
 function update(){pt.textContent=getPoint()}
 
@@ -143,7 +144,10 @@ function show(id){
 /* ===== ルーレット ===== */
 function playRoulette(){
   const bet=Number(rbet.value);
-  if(bet<=0||bet>getPoint()) return;
+  if(!bet || bet<=0 || bet>getPoint()){
+    rmsg.textContent="BETが不正です";
+    return;
+  }
   addPoint(-bet);
   wheel.classList.add("spin");
   spinSE.play();
@@ -170,16 +174,14 @@ function playSlot(){
   let i=0;
   const roll=setInterval(()=>{
     slotReel.textContent=
-      s[Math.floor(Math.random()*4)]+
-      s[Math.floor(Math.random()*4)]+
+      s[Math.floor(Math.random()*4)] +
+      s[Math.floor(Math.random()*4)] +
       s[Math.floor(Math.random()*4)];
-    i++;
-    if(i>15){
+    if(++i>15){
       clearInterval(roll);
       const a=slotReel.textContent;
-      if(a[0]===a[2]&&a[2]===a[4]){
-        const win=a.includes("💎")?500:100;
-        addPoint(win);
+      if(a[0]===a[2] && a[2]===a[4]){
+        addPoint(a.includes("💎")?500:100);
         slotMsg.textContent="🎉 JACKPOT";
         winSE.play();
       }else{
@@ -210,16 +212,18 @@ function playPachi(){
 }
 
 /* ===== 管理者 ===== */
-function login(){
+function adminLogin(){
   if(pass.value===ADMIN_PASS){
     localStorage.setItem("admin","1");
-    login.style.display="none";
+    loginBox.style.display="none";
     adminPanel.style.display="block";
   }
 }
 function resetAll(){
-  localStorage.clear();
-  location.reload();
+  if(confirm("本当に全削除しますか？")){
+    localStorage.clear();
+    location.reload();
+  }
 }
 function resetUser(){
   if(confirm("ポイントをリセットしますか？")){
@@ -229,7 +233,7 @@ function resetUser(){
 
 update();
 if(localStorage.getItem("admin")==="1"){
-  login.style.display="none";
+  loginBox.style.display="none";
   adminPanel.style.display="block";
 }
 </script>
